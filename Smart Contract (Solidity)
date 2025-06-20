@@ -1,0 +1,52 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+
+contract CryptoproTrail {
+    address public owner;
+
+    struct TransactionRecord {
+        address from;
+        address to;
+        uint256 amount;
+        uint256 timestamp;
+    }
+
+    TransactionRecord[] private transactions;
+
+    event TransactionLogged(address indexed from, address indexed to, uint256 amount, uint256 timestamp);
+
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Only owner can call this function.");
+        _;
+    }
+
+    constructor() {
+        owner = msg.sender;
+    }
+
+    function logTransaction(address _to, uint256 _amount) public {
+        TransactionRecord memory newRecord = TransactionRecord({
+            from: msg.sender,
+            to: _to,
+            amount: _amount,
+            timestamp: block.timestamp
+        });
+
+        transactions.push(newRecord);
+        emit TransactionLogged(msg.sender, _to, _amount, block.timestamp);
+    }
+
+    function getTransaction(uint256 index) public view returns (address from, address to, uint256 amount, uint256 timestamp) {
+        require(index < transactions.length, "Transaction does not exist.");
+        TransactionRecord storage record = transactions[index];
+        return (record.from, record.to, record.amount, record.timestamp);
+    }
+
+    function getTransactionCount() public view returns (uint256) {
+        return transactions.length;
+    }
+
+    function clearAllTransactions() public onlyOwner {
+        delete transactions;
+    }
+}
